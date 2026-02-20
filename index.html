@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Pengajuan Jabatan Fungsional RSDS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  font-family:Segoe UI,Roboto,sans-serif;
+  background:#f1f4f8;
+}
+header{
+  background:linear-gradient(135deg,#0f4c81,#083357);
+  color:#fff;
+  padding:20px 40px;
+  font-size:24px;
+  font-weight:600;
+}
+.container{padding:30px 40px}
+input{
+  padding:10px;
+  width:350px;
+  border-radius:8px;
+  border:1px solid #cbd5e1;
+}
+table{
+  width:100%;
+  margin-top:20px;
+  border-collapse:collapse;
+  background:#fff;
+}
+th,td{
+  padding:12px;
+  border-bottom:1px solid #e5e7eb;
+  font-size:14px;
+}
+th{
+  background:#e9eef4;
+  position:sticky;
+  top:0;
+}
+textarea{
+  width:100%;
+  min-height:60px;
+}
+button{
+  padding:6px 12px;
+  border:none;
+  border-radius:6px;
+  background:#0f4c81;
+  color:#fff;
+  cursor:pointer;
+}
+button.loading{background:#94a3b8}
+a.folder{
+  background:#16a34a;
+  color:#fff;
+  padding:6px 10px;
+  border-radius:6px;
+  text-decoration:none;
+}
+</style>
+</head>
+
+<body>
+<header>Pengajuan Jabatan Fungsional RSDS</header>
+
+<div class="container">
+  <input id="search" placeholder="Cari nama pegawai...">
+
+  <table>
+    <thead>
+      <tr>
+        <th>No</th><th>Nama</th><th>NIP</th><th>HP</th>
+        <th>Folder</th><th>Status</th>
+        <th>Catatan RSDS</th><th>Aksi</th><th>Catatan BKD</th>
+      </tr>
+    </thead>
+    <tbody id="body"></tbody>
+  </table>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwjFoAYuakuV5FlXgA_tmFmPN_LUVw3xP4s-Ss6JulIT2kkOt6uaQ4FlvVidAr_WbGYWA/exec";
+let DATA = [];
+
+fetch(API_URL)
+  .then(r=>r.json())
+  .then(d=>{
+    DATA=d;
+    render(DATA);
+  });
+
+document.getElementById("search").oninput=e=>{
+  const q=e.target.value.toLowerCase();
+  render(DATA.filter(d=>d.nama.toLowerCase().includes(q)));
+};
+
+function render(data){
+  body.innerHTML="";
+  data.forEach((d,i)=>{
+    body.innerHTML+=`
+      <tr>
+        <td>${i+1}</td>
+        <td>${d.nama}</td>
+        <td>${d.nip}</td>
+        <td>${d.hp}</td>
+        <td>${d.folder?`<a class="folder" target="_blank" href="${d.folder}">Buka</a>`:"-"}</td>
+        <td>${d.status}</td>
+        <td><textarea id="c${d.row}">${d.catatan_rsds}</textarea></td>
+        <td><button id="b${d.row}" onclick="save(${d.row})">Save</button></td>
+        <td>${d.catatan_bkd}</td>
+      </tr>`;
+  });
+}
+
+function save(row){
+  const btn=document.getElementById("b"+row);
+  btn.classList.add("loading");
+  btn.textContent="Saving...";
+
+  fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      row:row,
+      catatan:document.getElementById("c"+row).value
+    })
+  }).then(()=>{
+    btn.classList.remove("loading");
+    btn.textContent="Saved ✓";
+    setTimeout(()=>btn.textContent="Save",1200);
+  });
+}
+</script>
+</body>
+</html>
