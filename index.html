@@ -14,12 +14,12 @@ body{
 header{
   background:linear-gradient(135deg,#0f4c81,#083357);
   color:#fff;
-  padding:20px 40px;
+  padding:22px 40px;
   font-size:24px;
   font-weight:600;
 }
 .container{padding:30px 40px}
-input{
+.search{
   padding:10px;
   width:350px;
   border-radius:8px;
@@ -30,6 +30,7 @@ table{
   margin-top:20px;
   border-collapse:collapse;
   background:#fff;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);
 }
 th,td{
   padding:12px;
@@ -44,16 +45,18 @@ th{
 textarea{
   width:100%;
   min-height:60px;
+  resize:vertical;
 }
 button{
   padding:6px 12px;
   border:none;
   border-radius:6px;
-  background:#0f4c81;
-  color:#fff;
   cursor:pointer;
+  color:#fff;
 }
-button.loading{background:#94a3b8}
+.save-rsds{background:#0f4c81;}
+.save-bkd{background:#9333ea;}
+.loading{background:#94a3b8 !important;}
 a.folder{
   background:#16a34a;
   color:#fff;
@@ -68,14 +71,21 @@ a.folder{
 <header>Pengajuan Jabatan Fungsional RSDS</header>
 
 <div class="container">
-  <input id="search" placeholder="Cari nama pegawai...">
+  <input class="search" id="search" placeholder="Cari Nama Pegawai...">
 
   <table>
     <thead>
       <tr>
-        <th>No</th><th>Nama</th><th>NIP</th><th>HP</th>
-        <th>Folder</th><th>Status</th>
-        <th>Catatan RSDS</th><th>Aksi</th><th>Catatan BKD</th>
+        <th>No</th>
+        <th>Nama</th>
+        <th>NIP</th>
+        <th>HP</th>
+        <th>Folder</th>
+        <th>Status</th>
+        <th>Catatan RSDS</th>
+        <th>Aksi</th>
+        <th>Catatan BKD</th>
+        <th>Aksi</th>
       </tr>
     </thead>
     <tbody id="body"></tbody>
@@ -83,7 +93,7 @@ a.folder{
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwjFoAYuakuV5FlXgA_tmFmPN_LUVw3xP4s-Ss6JulIT2kkOt6uaQ4FlvVidAr_WbGYWA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbz2hbsTNSkLJ5h98hp7pYybCKOvq7Fs5c0nADZDYxfSANNGZ96oPURdBoLJf9g4dafrWA/exec";
 let DATA = [];
 
 fetch(API_URL)
@@ -109,23 +119,44 @@ function render(data){
         <td>${d.hp}</td>
         <td>${d.folder?`<a class="folder" target="_blank" href="${d.folder}">Buka</a>`:"-"}</td>
         <td>${d.status}</td>
-        <td><textarea id="c${d.row}">${d.catatan_rsds}</textarea></td>
-        <td><button id="b${d.row}" onclick="save(${d.row})">Save</button></td>
-        <td>${d.catatan_bkd}</td>
+
+        <td>
+          <textarea id="rsds${d.row}">${d.catatan_rsds}</textarea>
+        </td>
+        <td>
+          <button class="save-rsds" id="btnr${d.row}"
+            onclick="save(${d.row},'rsds')">Save</button>
+        </td>
+
+        <td>
+          <textarea id="bkd${d.row}">${d.catatan_bkd}</textarea>
+        </td>
+        <td>
+          <button class="save-bkd" id="btnb${d.row}"
+            onclick="save(${d.row},'bkd')">Save</button>
+        </td>
       </tr>`;
   });
 }
 
-function save(row){
-  const btn=document.getElementById("b"+row);
+function save(row,tipe){
+  const btn = document.getElementById(
+    tipe==="rsds" ? "btnr"+row : "btnb"+row
+  );
+
   btn.classList.add("loading");
   btn.textContent="Saving...";
+
+  const value = document.getElementById(
+    tipe==="rsds" ? "rsds"+row : "bkd"+row
+  ).value;
 
   fetch(API_URL,{
     method:"POST",
     body:JSON.stringify({
       row:row,
-      catatan:document.getElementById("c"+row).value
+      tipe:tipe,
+      catatan:value
     })
   }).then(()=>{
     btn.classList.remove("loading");
@@ -134,5 +165,6 @@ function save(row){
   });
 }
 </script>
+
 </body>
 </html>
